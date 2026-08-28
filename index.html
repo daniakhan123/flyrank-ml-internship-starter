@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Content Decline Risk and Review Prioritization</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.7;
+    max-width: 900px;
+    margin: auto;
+    padding: 30px;
+    color: #222;
+    background: #fafafa;
+}
+
+h1, h2 {
+    color: #1f3b5b;
+}
+
+h1 {
+    font-size: 2.4em;
+    border-bottom: 3px solid #1f3b5b;
+    padding-bottom: 15px;
+}
+
+section {
+    background: white;
+    padding: 25px;
+    margin: 25px 0;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background: #f1f3f5;
+}
+
+.highlight {
+    background: #eef5ff;
+    padding: 15px;
+    border-left: 5px solid #1f3b5b;
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    color: #666;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Content Decline Risk and Review Prioritization Using Search Performance Signals</h1>
+
+<section>
+<h2>Abstract</h2>
+
+<p>
+This study asks which content items should be prioritized for review based on historical search-performance signals and their estimated risk of future impression decline. Using the FlyRank ML Internship warehouse, historical Google Search Console performance features were used to predict whether a content item would experience an impression decline of more than 20% during a later 30-day period. A Random Forest model was evaluated using a client-grouped train/test split so that 10 clients were held out from training. The model achieved a balanced accuracy of 0.612 and a ROC-AUC of 0.683, outperforming the majority baseline on balanced accuracy but not on raw accuracy or F1. The resulting scores were used as directional decision-support signals to create a ranked queue for content review.
+</p>
+</section>
+
+<section>
+<h2>Introduction and Problem Statement</h2>
+
+<p>
+Content teams often have more pages than they can manually review. A practical decision problem is determining which content items should be examined first when search performance may be declining.
+</p>
+
+<p class="highlight">
+<strong>Research Question:</strong><br>
+Which content items should be prioritized for review or refresh based on recent search-performance signals and estimated risk of future impression decline?
+</p>
+
+<p>
+This work supports prioritization rather than automatic decision-making. The analysis does not claim that any particular signal causes a change in search performance or that refreshing content will necessarily improve results.
+</p>
+</section>
+
+<section>
+<h2>Data</h2>
+
+<p>
+The analysis uses the FlyRank ML Internship pseudonymized warehouse release. The daily content-performance table contains 78,835,655 rows covering January 27, 2025 through June 30, 2026.
+</p>
+
+<table>
+<tr>
+<th>Dataset component</th>
+<th>Size / coverage</th>
+</tr>
+
+<tr>
+<td>Clients</td>
+<td>104</td>
+</tr>
+
+<tr>
+<td>Clients with GSC data</td>
+<td>67</td>
+</tr>
+
+<tr>
+<td>Clients with GA4 data</td>
+<td>51</td>
+</tr>
+
+<tr>
+<td>Content items</td>
+<td>519,606</td>
+</tr>
+
+<tr>
+<td>Daily performance rows</td>
+<td>78,835,655</td>
+</tr>
+
+<tr>
+<td>Query-level 90-day rows</td>
+<td>2,414,248</td>
+</tr>
+
+<tr>
+<td>Date range</td>
+<td>2025-01-27 to 2026-06-30</td>
+</tr>
+</table>
+
+<p>
+The analysis uses pseudonymized identifiers for grouping only. No client names, domains, URLs, or private queries are exposed.
+</p>
+</section>
+
+<section>
+<h2>Methodology</h2>
+
+<p>
+Historical search-performance features were constructed before the outcome window to reduce temporal leakage. The features included previous impressions, previous clicks, click-through rate, average search position, position volatility, and the number of available feature days.
+</p>
+
+<p>
+The prediction target was whether impressions in the later 30-day outcome period declined by more than 20% relative to the historical comparison period. Content observations without sufficient historical or outcome data were excluded.
+</p>
+
+<table>
+<tr>
+<th>Modeling stage</th>
+<th>Result</th>
+</tr>
+
+<tr>
+<td>Initial observations</td>
+<td>100,254</td>
+</tr>
+
+<tr>
+<td>Model-ready observations</td>
+<td>73,461</td>
+</tr>
+
+<tr>
+<td>Clients represented</td>
+<td>37</td>
+</tr>
+
+<tr>
+<td>Observed decline rate</td>
+<td>70.2%</td>
+</tr>
+
+<tr>
+<td>Training observations</td>
+<td>44,491</td>
+</tr>
+
+<tr>
+<td>Test observations</td>
+<td>28,970</td>
+</tr>
+
+<tr>
+<td>Training clients</td>
+<td>27</td>
+</tr>
+
+<tr>
+<td>Held-out test clients</td>
+<td>10</td>
+</tr>
+</table>
+
+<p>
+Validation used GroupShuffleSplit by client. This prevents content items from the same client being randomly distributed across both training and testing data.
+</p>
+
+<p>
+A majority-class predictor served as the baseline. The main model was a Random Forest classifier.
+</p>
+</section>
+
+<section>
+<h2>Results</h2>
+
+<table>
+<tr>
+<th>Metric</th>
+<th>Majority Baseline</th>
+<th>Random Forest</th>
+</tr>
+
+<tr>
+<td>Accuracy</td>
+<td>0.747</td>
+<td>0.730</td>
+</tr>
+
+<tr>
+<td>Balanced Accuracy</td>
+<td>0.500</td>
+<td>0.612</td>
+</tr>
+
+<tr>
+<td>Precision</td>
+<td>0.747</td>
+<td>0.800</td>
+</tr>
+
+<tr>
+<td>Recall</td>
+<td>1.000</td>
+<td>0.852</td>
+</tr>
+
+<tr>
+<td>F1</td>
+<td>0.855</td>
+<td>0.825</td>
+</tr>
+
+<tr>
+<td>ROC-AUC</td>
+<td>0.500</td>
+<td>0.683</td>
+</tr>
+</table>
+
+<p>
+The Random Forest did not outperform the majority baseline on raw accuracy or F1. However, balanced accuracy increased from 0.500 to 0.612, showing that the model provided better discrimination across both classes than simply predicting decline for every observation.
+</p>
+
+<p>
+The ROC-AUC of 0.683 indicates moderate ability to distinguish observations with higher estimated decline risk from those with lower estimated risk.
+</p>
+</section>
+
+<section>
+<h2>Limitations and Honest Framing</h2>
+
+<p>
+The analysis is based on 37 clients represented in the final modeling dataset, with 10 clients held out for testing. Results may not generalize to all clients, future time periods, or other datasets.
+</p>
+
+<p>
+The 20% decline threshold is an analytical choice. Different thresholds or time windows could change both the labels and the resulting rankings.
+</p>
+
+<p>
+The analysis measures observed associations and predictive patterns. It does not establish why impressions changed, prove Google's ranking behavior, or demonstrate that refreshing a page causes recovery.
+</p>
+
+<p>
+The model should therefore be interpreted as a directional decision-support and prioritization tool, with final actions requiring human review and additional content context.
+</p>
+</section>
+
+<section>
+<h2>Ranked Recommendations</h2>
+
+<p>
+The model was converted into a prioritization queue using predicted decline risk combined with historical impression volume.
+</p>
+
+<table>
+<tr>
+<th>Recommended action</th>
+<th>Number of observations</th>
+<th>Suggested use</th>
+</tr>
+
+<tr>
+<td>Prioritize for review</td>
+<td>8,524</td>
+<td>Review first, especially where estimated decline risk and historical visibility are both high.</td>
+</tr>
+
+<tr>
+<td>Review / monitor</td>
+<td>10,849</td>
+<td>Investigate performance signals and continue monitoring before making major changes.</td>
+</tr>
+
+<tr>
+<td>Monitor</td>
+<td>9,597</td>
+<td>Keep under routine observation rather than prioritizing immediate intervention.</td>
+</tr>
+</table>
+
+<h3>Action Playbook</h3>
+
+<ol>
+<li><strong>Prioritize for review:</strong> Start with high-risk observations that also have meaningful historical search visibility.</li>
+
+<li><strong>Review performance drivers:</strong> Examine impressions, clicks, CTR, search position, and position volatility before deciding on an action.</li>
+
+<li><strong>Monitor:</strong> Continue tracking lower-priority observations rather than applying unnecessary changes.</li>
+
+<li><strong>Protect strong performers:</strong> Avoid unnecessary changes to content that does not show evidence of elevated decline risk unless additional context suggests otherwise.</li>
+</ol>
+
+<p>
+These recommendations form a ranked review queue. They do not guarantee that changing content will improve search performance.
+</p>
+</section>
+
+<section>
+<h2>Reproducibility</h2>
+
+<p>
+The analysis was performed using DuckDB for aggregation over the FlyRank warehouse and scikit-learn for modeling. Features were aggregated from the full warehouse release without downloading the complete daily dataset into memory.
+</p>
+
+<p>
+The notebooks and source code are available in this project's GitHub repository.</p>
+
+<p>
+Repository:
+<a href="https://github.com/daniakhan123/flyrank-ml-internship-starter">
+daniakhan123 GitHub Repository
+</a>
+</p>
+</section>
+
+<section>
+<h2>Acknowledgments and Data Credit</h2>
+
+<p>
+Built on the FlyRank ML Internship dataset.
+</p>
+
+<p>
+Data credit:
+<a href="https://flyrank.ai">FlyRank</a>
+</p>
+</section>
+
+<footer>
+<p>Research capstone built using the FlyRank ML Internship dataset.</p>
+</footer>
+
+</body>
+</html>
