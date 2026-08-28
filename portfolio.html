@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dania Khan | AI & Machine Learning Portfolio</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.7;
+    max-width: 950px;
+    margin: auto;
+    padding: 30px;
+    background: #fafafa;
+    color: #222;
+}
+
+header {
+    background: white;
+    padding: 35px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 5px;
+}
+
+h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+section {
+    background: white;
+    padding: 30px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+}
+
+.voice-card {
+    font-size: 1.2em;
+    padding: 15px;
+    background: #f3f3f3;
+    border-left: 5px solid #555;
+}
+
+.case-title {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+}
+
+.beat {
+    margin-top: 25px;
+}
+
+.cta {
+    padding: 20px;
+    background: #f3f3f3;
+    font-size: 1.1em;
+    border-radius: 8px;
+}
+
+.before {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.after {
+    background: #f0f0f0;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    color: #666;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<header>
+
+<h1>Dania Khan</h1>
+
+<p>
+AI student interested in machine learning, data analysis, and practical AI systems.
+</p>
+
+</header>
+
+
+<section>
+
+<h2>My Voice Card</h2>
+
+<div class="voice-card">
+
+Direct, honest, clear, practical, no buzzwords.
+
+</div>
+
+</section>
+
+
+<section>
+
+<h2>Case Study 1</h2>
+
+<div class="case-title">
+
+Search Performance Decline Risk Analysis
+
+</div>
+
+
+<div class="beat">
+
+<h3>The Problem</h3>
+
+<p>
+Content teams can have thousands of pages, making it difficult to know which pages should be reviewed first. Looking at every page manually is inefficient, and simply reacting after performance has already dropped may be too late.
+</p>
+
+<p>
+For my FlyRank ML Internship capstone, I explored whether historical search-performance signals could help identify content with a higher estimated risk of future impression decline.
+</p>
+
+<p>
+The goal was not to prove why search performance changes or claim that refreshing content causes recovery. The goal was to build a decision-support system that could help prioritize what to review first.
+</p>
+
+</div>
+
+
+<div class="beat">
+
+<h3>What I Did</h3>
+
+<p>
+I worked with a pseudonymized FlyRank search-performance warehouse containing approximately 78.8 million daily performance records.
+</p>
+
+<p>
+Instead of downloading the complete dataset into memory, I used DuckDB to query and aggregate the data efficiently. I created historical search-performance features and defined a decline label based on whether impressions dropped by more than 20% during a later comparison period.
+</p>
+
+<p>
+I used features related to historical impressions, clicks, CTR, search position, position volatility, and other available search signals.
+</p>
+
+<p>
+One important decision was using a client-grouped train/test split instead of a simple random split. This meant the model was tested on clients it had not seen during training.
+</p>
+
+<p>
+I trained a Random Forest classifier and compared it against a majority-class baseline rather than only reporting the model's strongest result.
+</p>
+
+</div>
+
+
+<div class="beat">
+
+<h3>What Came of It</h3>
+
+<p>
+The final modeling dataset contained <strong>73,461 observations across 37 clients</strong>, with <strong>10 clients held out for testing</strong>.
+</p>
+
+<p>
+The majority baseline achieved 74.7% accuracy and 50.0% balanced accuracy. The Random Forest achieved 73.0% accuracy, but improved balanced accuracy to 61.2%, with a ROC-AUC of 0.683.
+</p>
+
+<p>
+The model did not outperform the baseline on every metric, which was important to acknowledge. However, it showed better ability to distinguish between both classes than simply predicting the majority outcome for every observation.
+</p>
+
+<p>
+I then converted the model output into a ranked review queue:
+</p>
+
+<ul>
+
+<li><strong>8,524 observations:</strong> Prioritize for review</li>
+
+<li><strong>10,849 observations:</strong> Review / monitor</li>
+
+<li><strong>9,597 observations:</strong> Monitor</li>
+
+</ul>
+
+<p>
+The final output was a reproducible analysis and deployed research paper designed as a directional decision-support tool.
+</p>
+
+</div>
+
+</section>
+
+
+
+<section>
+
+<h2>Case Study 2</h2>
+
+<div class="case-title">
+
+Building a Machine Learning Workflow for Large-Scale Search Data
+
+</div>
+
+
+<div class="beat">
+
+<h3>The Problem</h3>
+
+<p>
+The FlyRank warehouse contains tens of millions of daily records. Loading the complete dataset into a typical Colab environment would be impractical.
+</p>
+
+<p>
+I needed to build a machine-learning workflow that could work with the full dataset while remaining reproducible and manageable on standard computing resources.
+</p>
+
+</div>
+
+
+<div class="beat">
+
+<h3>What I Did</h3>
+
+<p>
+I used DuckDB to query Parquet files directly from the hosted warehouse and performed the heavy aggregation inside SQL rather than loading the full dataset into pandas.
+</p>
+
+<p>
+My workflow included:
+</p>
+
+<ol>
+
+<li>Connecting to the hosted warehouse.</li>
+
+<li>Inspecting the available tables and date coverage.</li>
+
+<li>Aggregating daily records into content-level features.</li>
+
+<li>Creating a future decline label.</li>
+
+<li>Removing incomplete observations.</li>
+
+<li>Training a machine-learning model.</li>
+
+<li>Comparing it with a baseline.</li>
+
+<li>Testing on previously unseen clients.</li>
+
+<li>Converting model predictions into ranked recommendations.</li>
+
+</ol>
+
+</div>
+
+
+<div class="beat">
+
+<h3>What Came of It</h3>
+
+<p>
+The workflow transformed a warehouse containing approximately 78.8 million daily records into a model-ready dataset of 73,461 observations.
+</p>
+
+<p>
+This project taught me that building a useful machine-learning system involves more than training a model. I had to think about leakage, class imbalance, validation design, baseline comparison, generalization, and whether the final output was actually useful for decision-making.
+</p>
+
+</div>
+
+</section>
+
+
+
+<section>
+
+<h2>About Me</h2>
+
+<p>
+I am an Artificial Intelligence student interested in machine learning, data analysis, and building practical AI systems.
+</p>
+
+<p>
+I enjoy taking large or messy datasets, figuring out what can realistically be learned from them, and turning that work into something useful and reproducible.
+</p>
+
+</section>
+
+
+
+<section>
+
+<h2>Before and After: Editing AI Copy</h2>
+
+<h3>Generic AI Version</h3>
+
+<div class="before">
+
+<p>
+"I am a results-driven AI professional with a passion for leveraging machine learning and data-driven insights to solve complex problems and deliver innovative solutions."
+</p>
+
+</div>
+
+
+<h3>My Edited Version</h3>
+
+<div class="after">
+
+<p>
+"I am an AI student who likes taking large or messy datasets, figuring out what can actually be learned from them, and turning that work into something useful."
+</p>
+
+</div>
+
+<p>
+The first version could describe almost anyone. The edited version is closer to how I would actually describe myself and connects directly to the kind of work I have done.
+</p>
+
+</section>
+
+
+
+<section>
+
+<h2>Let's Connect</h2>
+
+<div class="cta">
+
+<p>
+If you're hiring for an entry-level AI, machine learning, or data-focused role, review my work and consider me for an interview.
+</p>
+
+</div>
+
+</section>
+
+
+<footer>
+
+<p>Built as part of my AI Fluency and FlyRank internship work.</p>
+
+</footer>
+
+</body>
+</html>
